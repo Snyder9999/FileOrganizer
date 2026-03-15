@@ -70,4 +70,4 @@ Please ensure all tests pass (`python -m pytest`) before submitting.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [License Agreement](LICENSE) file for details.
