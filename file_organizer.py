@@ -59,6 +59,7 @@ EXTENSION_MAP: dict[str, str] = {
     ".html": "Code",
     ".css": "Code",
     ".js": "Code",
+    ".md": "Code",
     # Software
     ".exe": "Software",
     ".msi": "Software",

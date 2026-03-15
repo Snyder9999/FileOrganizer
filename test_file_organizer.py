@@ -100,6 +100,7 @@ class TestGetCategory:
             ("page.html", "Code"),
             ("style.css", "Code"),
             ("app.js", "Code"),
+            ("readme.md", "Code"),
         ],
     )
     def test_code_extensions(self, filename: str, expected: str) -> None:
