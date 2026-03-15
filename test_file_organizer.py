@@ -37,6 +37,7 @@ class TestGetCategory:
             ("icon.png", "Images"),
             ("anim.gif", "Images"),
             ("logo.svg", "Images"),
+            ("live.heic", "Images"),
         ],
     )
     def test_image_extensions(self, filename: str, expected: str) -> None:
@@ -47,8 +48,10 @@ class TestGetCategory:
         [
             ("report.pdf", "Documents"),
             ("essay.docx", "Documents"),
+            ("letter.doc", "Documents"),
             ("notes.txt", "Documents"),
             ("data.xlsx", "Documents"),
+            ("sheet.xls", "Documents"),
             ("slides.pptx", "Documents"),
         ],
     )
@@ -59,8 +62,6 @@ class TestGetCategory:
         "filename, expected",
         [
             ("movie.mp4", "Media"),
-            ("song.mp3", "Media"),
-            ("sound.wav", "Media"),
             ("clip.mkv", "Media"),
         ],
     )
@@ -70,8 +71,22 @@ class TestGetCategory:
     @pytest.mark.parametrize(
         "filename, expected",
         [
+            ("song.mp3", "Audio"),
+            ("sound.wav", "Audio"),
+            ("track.ogg", "Audio"),
+            ("voice.opus", "Audio"),
+        ],
+    )
+    def test_audio_extensions(self, filename: str, expected: str) -> None:
+        assert get_category(Path(filename)) == expected
+
+    @pytest.mark.parametrize(
+        "filename, expected",
+        [
             ("backup.zip", "Archives"),
             ("data.rar", "Archives"),
+            ("archive.7z", "Archives"),
+            ("package.7zip", "Archives"),
             ("project.tar.gz", "Archives"),
         ],
     )
@@ -88,6 +103,18 @@ class TestGetCategory:
         ],
     )
     def test_code_extensions(self, filename: str, expected: str) -> None:
+        assert get_category(Path(filename)) == expected
+
+    @pytest.mark.parametrize(
+        "filename, expected",
+        [
+            ("setup.exe", "Software"),
+            ("installer.msi", "Software"),
+            ("image.iso", "Software"),
+            ("download.torrent", "Software"),
+        ],
+    )
+    def test_software_extensions(self, filename: str, expected: str) -> None:
         assert get_category(Path(filename)) == expected
 
     def test_unknown_extension_returns_others(self) -> None:
@@ -202,7 +229,7 @@ class TestMoveFiles:
         assert moved == 4
         assert (tmp_path / "Images" / "photo.jpg").exists()
         assert (tmp_path / "Documents" / "report.pdf").exists()
-        assert (tmp_path / "Media" / "song.mp3").exists()
+        assert (tmp_path / "Audio" / "song.mp3").exists()
         assert (tmp_path / "Code" / "app.py").exists()
 
     def test_unknown_extension_goes_to_others(self, tmp_path: Path) -> None:

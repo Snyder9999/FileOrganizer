@@ -31,26 +31,39 @@ EXTENSION_MAP: dict[str, str] = {
     ".png": "Images",
     ".gif": "Images",
     ".svg": "Images",
+    ".heic": "Images",
     # Documents
     ".pdf": "Documents",
     ".docx": "Documents",
+    ".doc": "Documents",
     ".txt": "Documents",
     ".xlsx": "Documents",
+    ".xls": "Documents",
     ".pptx": "Documents",
-    # Media
+    # Media (Video)
     ".mp4": "Media",
-    ".mp3": "Media",
-    ".wav": "Media",
     ".mkv": "Media",
+    # Audio
+    ".mp3": "Audio",
+    ".wav": "Audio",
+    ".ogg": "Audio",
+    ".opus": "Audio",
     # Archives
     ".zip": "Archives",
     ".rar": "Archives",
+    ".7z": "Archives",
+    ".7zip": "Archives",
     # .tar.gz is handled as a special case in get_category()
     # Code
     ".py": "Code",
     ".html": "Code",
     ".css": "Code",
     ".js": "Code",
+    # Software
+    ".exe": "Software",
+    ".msi": "Software",
+    ".iso": "Software",
+    ".torrent": "Software",
 }
 
 DEFAULT_CATEGORY: str = "Others"
