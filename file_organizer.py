@@ -17,6 +17,13 @@ import shutil
 import sys
 from pathlib import Path
 
+from utils import (
+    cleanup_empty_folders,
+    get_target_directory,
+    prompt_deep_scan,
+    resolve_collision,
+)
+
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -81,60 +88,6 @@ CATEGORY_NAMES: frozenset[str] = frozenset(
 # ---------------------------------------------------------------------------
 
 
-def get_default_desktop() -> Path:
-    """Return the platform-independent path to the current user's Desktop.
-
-    Returns:
-        Path to the Desktop directory.
-
-    Raises:
-        FileNotFoundError: If the Desktop directory does not exist.
-    """
-    desktop = Path.home() / "Desktop"
-    if not desktop.exists():
-        raise FileNotFoundError(
-            f"Default Desktop directory not found at '{desktop}'. "
-            "Please provide a valid directory path."
-        )
-    return desktop
-
-
-def get_target_directory() -> Path:
-    """Prompt the user for a target directory and validate it.
-
-    If the user presses Enter without typing anything, the system's
-    Desktop directory is used as the default.
-
-    Returns:
-        A validated Path object pointing to an existing directory.
-
-    Raises:
-        SystemExit: If the supplied path is invalid or inaccessible.
-    """
-    raw_path: str = input(
-        "Enter the target directory path (press Enter for Desktop): "
-    ).strip()
-
-    if not raw_path:
-        try:
-            directory = get_default_desktop()
-        except FileNotFoundError as exc:
-            print(f"Error: {exc}")
-            sys.exit(1)
-    else:
-        directory = Path(raw_path)
-
-    # Validate that the path exists and is a directory.
-    if not directory.exists():
-        print(f"Error: The path '{directory}' does not exist.")
-        sys.exit(1)
-    if not directory.is_dir():
-        print(f"Error: The path '{directory}' is not a directory.")
-        sys.exit(1)
-
-    return directory
-
-
 def scan_files(directory: Path) -> list[Path]:
     """Return a list of files in the root of *directory* (non-recursive).
 
@@ -148,20 +101,6 @@ def scan_files(directory: Path) -> list[Path]:
         A list of Path objects representing loose files.
     """
     return [entry for entry in directory.iterdir() if entry.is_file()]
-
-
-def prompt_deep_scan() -> bool:
-    """Ask the user whether to enable recursive deep-scan mode.
-
-    Returns:
-        ``True`` if the user opts in (``Y`` / ``y``),
-        ``False`` on ``N``, ``n``, or blank Enter (default).
-    """
-    response: str = input(
-        "Do you want to extract and organise files from all "
-        "sub-folders as well? (Y/N): "
-    ).strip().lower()
-    return response == "y"
 
 
 def deep_scan_files(directory: Path) -> list[Path]:
@@ -212,33 +151,6 @@ def get_category(file_path: Path) -> str:
 
     extension: str = file_path.suffix.lower()
     return EXTENSION_MAP.get(extension, DEFAULT_CATEGORY)
-
-
-def resolve_collision(dest_path: Path) -> Path:
-    """Return a non-colliding destination path.
-
-    If *dest_path* already exists, a numeric suffix (``_1``, ``_2``, …)
-    is appended to the file stem until a free name is found.
-
-    Args:
-        dest_path: The initially desired destination path.
-
-    Returns:
-        A Path that does not yet exist on disk.
-    """
-    if not dest_path.exists():
-        return dest_path
-
-    stem: str = dest_path.stem
-    suffix: str = dest_path.suffix
-    parent: Path = dest_path.parent
-    counter: int = 1
-
-    while True:
-        new_path = parent / f"{stem}_{counter}{suffix}"
-        if not new_path.exists():
-            return new_path
-        counter += 1
 
 
 def move_files(
@@ -292,57 +204,6 @@ def move_files(
             print(f"  Warning: Could not move '{file_path.name}': {exc}")
 
     return moved_count
-
-
-def cleanup_empty_folders(directory: Path) -> int:
-    """Recursively delete all empty sub-folders inside *directory*.
-
-    Walks the tree **bottom-up** so that deeply nested directories
-    emptied by a prior deep-scan extraction are cleaned first,
-    allowing their parent directories to become empty in turn and
-    be removed in the same pass.
-
-    **Important:** This function never deletes files — only truly
-    empty directories are removed, using ``os.rmdir()``.
-
-    Args:
-        directory: The root directory to inspect.
-
-    Returns:
-        The number of empty folders that were removed.
-    """
-    removed_count: int = 0
-
-    # os.walk with topdown=False visits the deepest leaves first.
-    for dirpath_str, dirnames, filenames in os.walk(
-        directory, topdown=False
-    ):
-        dirpath = Path(dirpath_str)
-
-        # Never attempt to remove the root target directory itself.
-        if dirpath == directory:
-            continue
-
-        # A folder is empty when it has no files and no sub-dirs.
-        try:
-            remaining = list(dirpath.iterdir())
-        except PermissionError:
-            print(
-                f"  Warning: Cannot access '{dirpath.name}', skipping."
-            )
-            continue
-
-        if len(remaining) == 0:
-            try:
-                os.rmdir(str(dirpath))
-                removed_count += 1
-                print(f"  Removed empty folder: {dirpath.name}")
-            except OSError as exc:
-                print(
-                    f"  Warning: Could not remove '{dirpath.name}': {exc}"
-                )
-
-    return removed_count
 
 
 # ---------------------------------------------------------------------------

@@ -11,13 +11,15 @@ from pathlib import Path
 import pytest
 
 from file_organizer import (
-    cleanup_empty_folders,
     deep_scan_files,
     get_category,
     move_files,
+    scan_files,
+)
+from utils import (
+    cleanup_empty_folders,
     prompt_deep_scan,
     resolve_collision,
-    scan_files,
 )
 
 
